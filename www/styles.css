@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Rubik:wght@300;400;500;600&family=Ubuntu+Mono:wght@400;700&display=swap');
+
+.row-details {
+  font-family: "Public Sans";
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.appear {
+  animation: fadein .3s ease;
+}
+
+.disappear {
+  animation: fadeout .3s ease;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.circle {
+  border-radius:100%;
+  height:22px;
+  width: 22px; 
+  display:inline-block; 
+  position:relative; 
+  transition:.1s ease-in-out all;
+}
+
+.circle:hover {
+ box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+}
+
+button:hover .tooltext{
+  opacity: 1; 
+  visibility:visible;
+}
+
+.badge {
+  border-radius:100%;
+  height: 30px;
+  width: 30px;
+  color:black;
+}
+
+.circle span { 
+  font-size: 1rem;
+  font-weight: bold;
+  position:absolute; 
+  top:15%; 
+  left: 31%; 
+}
+
+.black { 
+border:1px solid #e72ce3; 
+background-color:#f5c0f764; 
+}
+
+.hispanic {
+  background-color: #f5871866; 
+  border: 1px solid #F58818; 
+}
+
+.veteran {
+  background-color: #facc0061;
+  border: 1px solid #face00;
+}
+
+.asian {
+  background-color: #0344b35a;
+  border: 1px solid #012563;
+}
+
+.nativeamer {
+  background-color: #f531656f;
+  border: 1px solid #F53165; 
+}
+
+.wbe { 
+background-color: #a3e5b874; 
+border: 1px solid #56f287ce; 
+}
+
+.disabled {
+  background-color: #b12f3a45;
+  border: 1px solid #b12f39;
+}
+
+.subasian {
+  background-color: aliceblue;
+  border: 1px solid rgb(91, 178, 254);
+}
+
+.mbe { 
+background-color: #012563; 
+color:white; 
+}
+
