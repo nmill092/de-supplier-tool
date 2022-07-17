@@ -70,7 +70,6 @@ function renderBadges(data) {
             divv.innerHTML += `
     <button class = 'btn badge ${label.class}' type='button' data-toggle='tooltip' title='${label.descrip}'>
     ${label.abbrev}
- 
     </button>`
         }
     })
@@ -127,7 +126,6 @@ function renderDetails(rowInfo, column, state) {
 }
 
 window.addEventListener("DOMContentLoaded", function() {
-document.querySelector("svg").classList.add("appear");
 document.querySelector("#sidebarItemExpanded").classList.add("appear");
 document.querySelectorAll(".box-header")[1].style.display="none";
 })
@@ -142,7 +140,8 @@ function renderBodyTags(data) {
 }
 
 function moreInfo(id, name) {
-  Shiny.setInputValue("selected", id, {"priority":"event"})
-  document.querySelector(".Reactable").scrollIntoView(); 
-  document.querySelector(".rt-search").setAttribute("value",name)
+  Shiny.setInputValue("selected", id, {"priority":"event"}); 
+  console.log(id + " " + name);
+  document.querySelector("[data-value='Diversity Supplier Lookup Table'").click();
+  document.querySelector(".Reactable").scrollIntoView();
 }
