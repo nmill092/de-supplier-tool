@@ -1,6 +1,6 @@
 source("global.r", local = T)
-source("sidebar.R", local=T)
-source("tab1.r", local=T)
+source("components/sidebar.R", local=T)
+source("components/tab1.r", local=T)
 
 ui <- dashboardPage(
   dashboardHeader(title = "Delaware Diversity Supplier Lookup Tool", disable = T),

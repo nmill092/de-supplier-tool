@@ -11,7 +11,7 @@ library(reactablefmtr)
 library(shinyjs)
 
 
-naics <- read_csv("2017_titles_descriptions.csv")
+naics <- read_csv("data/2017_titles_descriptions.csv")
 
 de.data <-
   fromJSON(
