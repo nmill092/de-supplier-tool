@@ -141,7 +141,6 @@ function renderBodyTags(data) {
 
 function moreInfo(id, name) {
   Shiny.setInputValue("selected", id, {"priority":"event"}); 
-  console.log(id + " " + name);
   document.querySelector("[data-value='Diversity Supplier Lookup Table'").click();
   document.querySelector(".Reactable").scrollIntoView();
 }

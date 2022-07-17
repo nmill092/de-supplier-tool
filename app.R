@@ -15,7 +15,7 @@ ui <- dashboardPage(
              height = "100%",
       tabPanel1,
       tabPanel("Diversity Supplier Lookup Table",
-      p(strong("Click on any supplier from the table below to view detailed information."), br(),br(), em("Note: Websites, email addresses, and other contact information is provided by the Delaware Office of Supplier Diversity. For questions about the accuracy of information in this dataset, please ", a(href="https://data.delaware.gov/Economic-Development/Certified-Vendors-Office-of-Supplier-Diversity/s4ev-nzhm",target="_blank", "contact the dataset owner."))),
+      p(strong("Click on any supplier from the table below to view detailed information."), br(),br(), em("Note: Websites, email addresses, and other contact information are provided by the Delaware Office of Supplier Diversity. For questions about the accuracy of information in this dataset, please ", a(href="https://data.delaware.gov/Economic-Development/Certified-Vendors-Office-of-Supplier-Diversity/s4ev-nzhm",target="_blank", "contact the dataset owner."))),
       withSpinner(
         reactableOutput("reactable"),
         type = 7,
@@ -195,10 +195,6 @@ server <- function(input, output, session) {
       pageSizeOptions = c(10, 20, 50, 100),
       showSortable = T,
       theme=nytimes(),
-      # theme = reactableTheme(
-      #   searchInputStyle = list(width = "100%", padding="10px"),
-      #   cellPadding = "10px",headerStyle = list(padding="12px")
-      # ),
       language = reactableLang(searchPlaceholder = "Search for a company name",
                                noData = "No companies match your selected criteria.")
     )
@@ -220,13 +216,7 @@ server <- function(input, output, session) {
     updateReactable("reactable",
                     data = filtered()[filtered()$osdcertnum == input$selected, ], expanded = T)
   })
-  
 
-  
-  output$text <- renderPrint({
-    getReactableState("reactable")
-  })
-  
   updateSelectizeInput(session = session,
                        inputId = "naics",
                        choices = sort(unique(de.data$naics_title)))
