@@ -1,16 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Rubik:wght@300;400;500;600&family=Ubuntu+Mono:wght@400;700&display=swap');
 @import url(https://use.fontawesome.com/releases/v5.7.2/css/all.css);
 
+* {
+  scroll-behavior: smooth; 
+}
+
+#sidebarItemExpanded {
+  
+}
+
+#sidebarCollapsed {
+  box-shadow: 2px 2px 10px rgb(0 0 0 / 30%);
+ background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg id='Layer_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 902.94 793.45'%3E%3Cdefs%3E%3Cstyle%3E.cls-1%7Bfill:rgba(240 220 130 .42)%3Bstroke:%23f0dc82%3Bstroke-miterlimit:10%3B%7D%3C/style%3E%3C/defs%3E%3Cpath class='cls-1' d='M902.12 .05l.31 792.55-901.84 .36S53.8 489.17 433.17 326.54C665.57 226.92 889.89 133.75 902.12 .05Z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right bottom;
+  background-attachment: fixed;
+}
+
+.main-sidebar {
+  background-color: #245194 !important;
+
+}
+
+.sidebar-toggle {
+  display:none;
+}
+
 .row-details {
   font-family: "Public Sans";
   padding: 3rem 5rem;
   box-shadow: inset 0 1px 10px #dbdbdb;
-  
 }
 
 .appear {
-  animation: fadein .3s ease;
+  animation: fadein 1s ease;
 }
+
+
 
 .disappear {
   animation: fadeout .3s ease;
@@ -38,16 +64,6 @@
     opacity: 0;
   }
 }
-
-.circle {
-  border-radius:100%;
-  height:22px;
-  width: 22px; 
-  display:inline-block; 
-  position:relative; 
-  transition:.1s ease-in-out all;
-}
-
 
 button:hover .tooltext{
   opacity: 1; 

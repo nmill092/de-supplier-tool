@@ -2,52 +2,80 @@ source("global.r", local = T)
 
 
 ui <- dashboardPage(
-  dashboardHeader(),
-  dashboardSidebar(collapsed = TRUE),
+  dashboardHeader(title = "Delaware Diversity Supplier Portal",disable = T),
+  dashboardSidebar(width = "400px",
+                   div(
+                     style="width:400px; padding: 2rem",
+                     h2(strong("Delaware Diversity Supplier Search Tool")),
+                     p("The data in this dashboard are sourced from the Delaware Office of Supplier Diversity's Certified Vendors API. Businesses included are owned and controlled 51% or more by minorities, women, veterans, and individuals with disabilities."),
+p("Use the filters below to select one or more diversity classifications. You can further  trim down your search by filtering for particular industries or cities within the State of Delaware."),
+p("This is an independent project which is in no way affiliated with the State Government of Delaware.")),
+ div(style="width:400px; padding: 2rem",
+   icon("github","fa-2x")
+ ),
+    selectizeInput(width = "400px",
+      "owned",
+      "Select one or more diversity classifications:",
+      choices = list(
+        "Woman-Owned" = "wbe",
+        "Minority-Owned" = "mbe",
+        "Disability-Owned" = "disabled",
+        "Veteran-Owned" = "veteran",
+        "Black-Owned" = "african",
+        "Asian American-Owned" = "asian",
+        "Native American-Owned" = "nativeamer",
+        "Hispanic American-Owned" = "hispanic",
+        "Subcontinent Asian American-Owned" = "subasian"
+      ),
+      multiple = T
+    ),
+    
+    checkboxInput(width = "400px",
+      "and",
+      "Show only businesses that meet all of the selected diversity classifications?",
+      FALSE
+    ),
+    selectizeInput(width="400px",
+      "naics",
+      "Select an industry:",
+      choices = NULL,
+      multiple = T
+    ),
+    selectizeInput(width="400px",
+                   "city",
+                   "Select a city:",
+                   choices = NULL,
+                   multiple = T
+    ),
+    actionButton("clear", "Clear all filters",icon = icon("backspace"),width = "250px")
+  ),
   dashboardBody(
-    tags$head(includeCSS("www/styles.css"), includeScript("script.js")),
+    tags$head(includeCSS("www/styles.css"), 
+              includeScript("script.js")),
+    useShinyjs(),
     fluidRow(
-      box(
-        title = "map",
+      box(height = "20vh",
+        title = "Diversity Supplier Map",
+        status = "primary",
+        collapsible = T,
         width = 12,
-        verbatimTextOutput("verb"),
-        leafletOutput("map"),
-        selectizeInput(
-          "owned",
-          "Select a diversity:",
-          choices = list(
-            "Woman-Owned" = "wbe",
-            "Minority-Owned" = "mbe",
-            "Disability-Owned" = "disabled",
-            "Veteran-Owned" = "veteran",
-            "Black-Owned" = "african",
-            "Asian American-Owned" = "asian",
-            "Native American-Owned" = "nativeamer",
-            "Hispanic American-Owned" = "hispanic",
-            "Subcontinent Asian American-Owned" = "subasian"
-          ),
-          multiple = T
-        ),
-        checkboxInput(
-          "and",
-          "Show only businesses that meet all of the diversity classifications selected above?",
-          FALSE
-        ),
-        selectizeInput("naics",
-                       "Select an industry:",
-                       choices = NULL, multiple=T)
+        withSpinner(
+          leafletOutput("map"),
+          type = 7,
+          color.background="white")
       )
     ),
     fluidRow(box(
       title = "Table",
       width = 12,
       withSpinner(
-        reactableOutput("distPlot"),
+        reactableOutput("reactable"),
         type = 7,
         color.background = "white"
       )
     ))
-  )
+  ),
+ footer = dashboardFooter(left = "View Github Repo",)
 )
 
 # Define server logic required to draw a histogram
@@ -67,51 +95,52 @@ server <- function(input, output, session) {
   de.data$lat <-
     unlist(lapply(de.data$geocoded_location$coordinates, `[`, 2))
   de.data$geocoded_location <- NULL
-  de.data$job_description[is.na(de.data$job_description)] <- "No description available."
-  de.data$website <- gsub("http:\\/\\/|www.|https:\\/\\/","http://",de.data$website)
+  de.data$job_description[is.na(de.data$job_description)] <-
+    "No description available."
+  de.data$website <-
+    gsub("http:\\/\\/|www.|https:\\/\\/",
+         "http://",
+         de.data$website)
   
-  f <- function(x) if_else(is.na(x), F, T)
+  f <- function(x)
+    if_else(is.na(x), F, T)
   
   vars.to.match <-
     "wbe|mbe|hispanic|nativeamer|asian|veteran|african|subasian|disabled"
   de.data <- de.data %>% mutate_at(vars(matches(vars.to.match)), f)
   de.data$company_name <- gsub("�", "'", de.data$company_name)
-  de.data$job_description <- gsub("�","'",de.data$job_description)
+  de.data$job_description <- gsub("�", "'", de.data$job_description)
+  de.data$city[de.data$city == "New Castle,"] <- "New Castle"
+  de.data$city[de.data$city == "Millsoboro"] <- "Millsboro"
   
-  naics <- read_csv("2017_titles_descriptions.csv")
   
-  de.data <- de.data %>% 
-    mutate(naics_root = substr(naicscode1,1,5))  %>% 
-    left_join(naics, by = c("naics_root" = "NAICS")) %>% 
+  de.data <- de.data %>%
+    mutate(naics_root = substr(naicscode1, 1, 5))  %>%
+    left_join(naics, by = c("naics_root" = "NAICS")) %>%
     rename('naics_title' = "2017 NAICS Short Title")
   
   filtered <- reactive({
-    # if (length(input$owned) == 0) {
-    #   de.data
-    # } else {
-    #   de.data$num <- rowSums(de.data[input$owned])
-    #   if (input$and == F) {
-    #     de.data[de.data$num > 0, ]
-    #   } else {
-    #     de.data[de.data$num == length(input$owned),]
-    #   }
-    # }
-    
     data <- de.data
     
     if (length(input$owned) == 0) {
-     data
+      data
     } else {
       data$num <- rowSums(data[input$owned])
       if (input$and == F) {
-        data <- data[data$num > 0, ]
+        data <- data[data$num > 0,]
       } else {
-        data <- data[data$num == length(input$owned),]
+        data <- data[data$num == length(input$owned), ]
       }
     }
     
-    if(length(input$naics) > 0) {
-      data[data$naics_title %in% input$naics,]
+    if (length(input$naics) > 0) {
+     data <-  data[data$naics_title %in% input$naics, ]
+    } else {
+      data <- data
+    }
+    
+    if(length(input$city) > 0) {
+      data[data$city %in% input$city,]
     } else {
       data
     }
@@ -119,26 +148,55 @@ server <- function(input, output, session) {
     
   })
   
-  output$verb <- renderText({
-    getReactableState("distplot")$selected
-  })
-  
-  labels <- sprintf(
-    "<strong>%s</strong><pre>%s</p>",
-    de.data$company_name,
-    de.data$job_description
-  ) %>%
-    lapply(htmltools::HTML)
   
   output$map <- renderLeaflet({
     leaflet(de.data) %>%
-      addProviderTiles("CartoDB") %>%
-      addMarkers(label = labels)
+      addProviderTiles("CartoDB.Positron") %>%
+      addMarkers(
+        layerId = ~ osdcertnum,
+        label = ~ company_name,
+        popup = ~ sprintf(
+          "<h4 style='font-weight:bold'>%s</h4>
+    <p>%s, %s, %s %s</p><button>Show in Table</button>",
+    company_name,
+    address_1,
+    city,
+    state,
+    zip_code),
+    clusterOptions = markerClusterOptions(freezeAtZoom = 10, 
+                                          showCoverageOnHover = T)
+      )
   })
   
-  output$distPlot <- renderReactable({
+  
+  observe({
+    leafletProxy("map",
+                 data = filtered()) %>%
+      clearMarkers() %>% 
+      clearMarkerClusters() %>%
+      addMarkers(
+        layerId = ~ osdcertnum,
+        label = ~ company_name,
+        popup = ~ sprintf(
+          "<h4>%s</h4>
+    <p>%s, %s, %s %s</p><button onclick='moreInfo(\"%s\", \"%s\")'>Show In Table</button>",
+    company_name,
+    address_1,
+    city,
+    state,
+    zip_code,
+    osdcertnum,
+    company_name),
+    clusterOptions = markerClusterOptions(
+      showCoverageOnHover = T,
+      spiderfyOnMaxZoom = T
+    )
+      ) %>% setView(lng = mean(filtered()$lng), lat = mean(filtered()$lat), zoom = 9)
+  })
+  
+  output$reactable <- renderReactable({
     reactable(
-      filtered() %>%
+      de.data %>%
         mutate(badges = "", details = "") %>%
         select(
           osdcertnum,
@@ -164,63 +222,31 @@ server <- function(input, output, session) {
           tel,
           naics_title,
           job_description
-        )
-      ,
-      defaultColDef = colDef(show = F, 
-                             headerClass = "header",
-                             ),
+        ),
+      defaultColDef = colDef(show = F,
+                             headerClass = "header",),
       onClick = "expand",
       selection = "multiple",
+      searchable = T,
       columns = list(
         company_name = colDef(
-          searchable = F,
+          searchable = T,
           filterable = F,
           show = T,
           resizable = T,
           name = "Company Name",
-          rowHeader = T,sticky = "left"
+          rowHeader = T,
+          sticky = "left"
         ),
         details = colDef(
           show = T,
           html = T,
           maxWidth = 30,
           filterable = F,
-          searchable = F,
           name = "",
           details = JS(
-            "function(rowInfo, column, state) { 
-            return `
-            <div class='row-details'>
-            <div class='company-header'>
-<h4>${rowInfo.values.company_name}</h4>
-<span class='company-address'> <i class='fas fa-map-marker-alt'></i>
-${rowInfo.values.address_1}, ${rowInfo.values.city}, ${rowInfo.values.state} ${rowInfo.values.zip_code}
-</span>
-</div>
-<div class='company-body'>
- <div class='tag-group'><strong>Tags: </strong> ${renderBodyTags(rowInfo)}</div>
-<div class='industry'><strong>Primary NAICS Industry Description: </strong> ${rowInfo.values.naics_title}</div>
-<div class='contact-group'>
-  <div>
-     <span class='contact-item'><i class='fas fa-phone-square-alt'></i> ${rowInfo.values.tel}</span>  <span class='contact-item'><i class='fas fa-desktop'></i> ${rowInfo.values.website==null ? 'No website available' : '<a href='+rowInfo.values.website+' target=\"_blank\">'+rowInfo.values.website.split(\"http://\")[1]+'</a>'}</span></div>
-</div> 
-</div>
-<hr/>
- <div class='company-description'>
-  <h4>Company Description</h4>
-  <p><em>${rowInfo.values.job_description}</em></p>
-</div>
-<hr/>
-<div class='company-footer'>
-  <h4 style='font-size: 1.5rem; color:#696969'>Additional Information</h4>
- <div>
-  <span style='display:block'><strong>OSD Certification Number:</strong> ${rowInfo.values.osdcertnum}</span>
-
-  <span class='contact-item' style='margin-top: 0rem; display:block'><strong>ATTN:</strong> ${rowInfo.values.contact_name}, <a href='mailto:${rowInfo.values.email}'>${rowInfo.values.email}</a></span></div>
-</div>
-</div>
-</div>
-            ` }")
+            "function(rowInfo, column, state) { return renderDetails(rowInfo,column,state) }"
+          )
         ),
         city = colDef(
           name = "City",
@@ -231,7 +257,7 @@ ${rowInfo.values.address_1}, ${rowInfo.values.city}, ${rowInfo.values.state} ${r
         badges = colDef(
           searchable = F,
           sortable = F,
-          name = "",
+          name = "Diversity Classifications",
           filterable = F,
           show = T,
           html = T,
@@ -245,21 +271,50 @@ ${rowInfo.values.address_1}, ${rowInfo.values.city}, ${rowInfo.values.state} ${r
       rowStyle = list(cursor = "pointer"),
       showPageSizeOptions = TRUE,
       pageSizeOptions = c(10, 20, 50, 100),
-      theme = fivethirtyeight(cell_padding = "11px"),
-      showSortable = T
+      showSortable = T,
+      theme = reactableTheme(
+        searchInputStyle = list(width = "100%", padding="10px"),
+        cellPadding = "10px",headerStyle = list(padding="12px")
+      ),
+      language = reactableLang(searchPlaceholder = "Search for a company name",
+                               noData = "No companies match your selected criteria.")
     )
   })
   
-  updateSelectizeInput(
-      session = session,
-      inputId = "naics",
-      choices = sort(unique(de.data$naics_title))
-  )
+  observe({
+    updateReactable("reactable", data = filtered(), expanded = F)
+  })
+  
+  observeEvent(input$clear, {
+    reset("naics")
+    reset("owned")
+    reset("city")
+    shinyjs::runjs("document.documentElement.scrollTop = 0; document.body.scrollTop = 0")
+    updateReactable("reactable", data = filtered(), expanded = F)
+    
+  })
+  
+  observeEvent(input$selected, {
+    updateReactable("reactable",
+                    data = filtered()[filtered()$osdcertnum == input$selected, ], expanded = T)
+  })
+  
+  output$text <- renderPrint({
+    getReactableState("reactable")
+  })
+  
+  updateSelectizeInput(session = session,
+                       inputId = "naics",
+                       choices = sort(unique(de.data$naics_title)))
+  
+  updateSelectizeInput(session = session,
+                       inputId = "city",
+                       choices = sort(unique(de.data$city)))
   
   selected <- reactive({
     req(input$details)
     
-    de.data[de.data$osdcertnum == input$details,]
+    de.data[de.data$osdcertnum == input$details, ]
   })
 }
 

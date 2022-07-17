@@ -7,4 +7,9 @@ library(reactable)
 library(leaflet)
 library(shinycssloaders)
 library(shinyWidgets)
+library(readr)
 library(reactablefmtr)
+library(shinyjs)
+
+
+naics <- read_csv("2017_titles_descriptions.csv")
