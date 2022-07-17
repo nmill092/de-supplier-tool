@@ -14,7 +14,7 @@ let labels2 = [
   label: "disabled", 
   abbrev: "D",
 	class: "disabled", 
-	descrip: "Owned by member of the disability community" 
+	descrip: "Disability-owned" 
 }, 
   { 
   	label: "african",
@@ -54,38 +54,16 @@ let labels2 = [
   }, 
 ]
 
-/* 
-
 function renderBadges(data) {
 
     let divv = document.createElement('div'); 
     divv.setAttribute("class", "circle-group")
+     let tags = []; 
     labels2.forEach(label => {
-      
-if(data.row[label.label] == "YES") { 
-    divv.innerHTML += `
-    <button class = 'btn ${label.class}'>
-    <span>${label.abbrev}</span>
-   <div class="tooltip">
-    <span class="tooltext">${label.descrip}</span>
-    </div>
-    </button>`
-} 
-    }) 
-    
-      return divv.outerHTML;
-
-
-};  */
-
-
-function renderBadges(data) {
-
-    let divv = document.createElement('div'); 
-    divv.setAttribute("class", "circle-group")
-    labels2.forEach(label => {
-      
+     
 if(data.row[label.label]) { 
+  
+  tags.push({"class":label.class, "descrip": label.descrip});
     divv.innerHTML += `
     <button class = 'btn badge ${label.class}' data-tooltip=${label.descrip}>
     ${label.abbrev}
@@ -93,9 +71,21 @@ if(data.row[label.label]) {
     </button>`
 } 
     }) 
-      return divv.outerHTML;
+      return { 
+        html: divv.outerHTML,
+        tags: tags
+      }
 }; 
 
+
+function renderBodyTags(data) {
+  const tags = renderBadges(data).tags; 
+  let str = []
+  tags.forEach(tag => { 
+    str.push(`<span class = "${tag.class} body-badge">${tag.descrip}</span>`)
+  })
+  return str.join("")
+}
 
 
 
