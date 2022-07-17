@@ -30,9 +30,12 @@ ui <- dashboardPage(
         ),
         checkboxInput(
           "and",
-          "Show only businesses that meet all of the conditions selected above?",
+          "Show only businesses that meet all of the diversity classifications selected above?",
           FALSE
-        )
+        ),
+        selectizeInput("naics",
+                       "Select an industry:",
+                       choices = NULL, multiple=T)
       )
     ),
     fluidRow(box(
@@ -48,7 +51,7 @@ ui <- dashboardPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   de.data <-
     fromJSON(
       URLencode(
@@ -83,16 +86,37 @@ server <- function(input, output) {
     rename('naics_title' = "2017 NAICS Short Title")
   
   filtered <- reactive({
+    # if (length(input$owned) == 0) {
+    #   de.data
+    # } else {
+    #   de.data$num <- rowSums(de.data[input$owned])
+    #   if (input$and == F) {
+    #     de.data[de.data$num > 0, ]
+    #   } else {
+    #     de.data[de.data$num == length(input$owned),]
+    #   }
+    # }
+    
+    data <- de.data
+    
     if (length(input$owned) == 0) {
-      de.data
+     data
     } else {
-      de.data$num <- rowSums(de.data[input$owned])
+      data$num <- rowSums(data[input$owned])
       if (input$and == F) {
-        de.data[de.data$num > 0,]
+        data <- data[data$num > 0, ]
       } else {
-        de.data[de.data$num == length(input$owned),]
+        data <- data[data$num == length(input$owned),]
       }
     }
+    
+    if(length(input$naics) > 0) {
+      data[data$naics_title %in% input$naics,]
+    } else {
+      data
+    }
+    
+    
   })
   
   output$verb <- renderText({
@@ -226,7 +250,11 @@ ${rowInfo.values.address_1}, ${rowInfo.values.city}, ${rowInfo.values.state} ${r
     )
   })
   
-
+  updateSelectizeInput(
+      session = session,
+      inputId = "naics",
+      choices = sort(unique(de.data$naics_title))
+  )
   
   selected <- reactive({
     req(input$details)
