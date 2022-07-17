@@ -1,5 +1,4 @@
 library(shiny)
-library(DT)
 library(tidyverse)
 library(jsonlite)
 library(shinydashboard)
